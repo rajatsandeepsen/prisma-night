@@ -1,13 +1,11 @@
 import { prisma } from "./client";
 
 
-const users = await prisma.user.createManyAndReturn({
-    data: {
-        name: "Alice",
-        email: "Alice@gmail.com",
-        id: "1234567890",
-        createdAt: new Date(),
-    }
+const customer = await prisma.customer.delete({
+    where: {
+        id: "1234567890"
+    },
 })
 
-console.log(users)
+console.log(customer)
+
