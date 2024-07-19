@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Account {
+  id                       String   @id
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @default(now())
+  userId                   String
+  type                     String
+  provider                 String
+  provider_account_id      String
+  refresh_token            String?
+  refresh_token_expires_in Int?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?
+  session_state            String?
+  User                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_account_id])
+  @@index([userId])
+}
+
+model Customer {
+  id          String        @id
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  userId      String?       @unique
+  stripeId    String        @unique
+  User        User?         @relation(fields: [userId], references: [id])
+  Environment Environment[]
+  Payment     Payment[]
+
+  @@index([userId])
+}
+
+model Environment {
+  id         String   @id
+  createdAt  DateTime @default(now())
+  usage      Int      @default(0)
+  customerId String
+  Customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+}
+
+model Payment {
+  id         String   @id
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  stripeId   String   @unique
+  amount     Int
+  currency   String
+  status     String
+  receiptUrl String?
+  customerId String
+  Customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String    @id @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  username      String?   @unique
+  Account       Account[]
+  Customer      Customer?
+  Session       Session[]
+
+  @@index([id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
